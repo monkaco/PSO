@@ -26,8 +26,8 @@
 #include "hw_ints.h"
 
 extern uart_raw_data_t g_uart0_data; /*Defined in "pos_uart.c" */
-uint8_t g_timer_a0_scan_flag = 0U;
-uint8_t g_timer_a3_scan_flag = 0U;   /* 1 Hz scan rate */
+uint8_t g_timer_a0_scan_flag = 0U;   /* Main: 500k/4 = 125 kHz scan rate */
+uint8_t g_timer_a3_scan_flag = 0U;   /* RPM: 10 Hz scan rate */
 
 volatile uint32_t adc0_buffer[3];      /* Ax - Thr - V_m */
 volatile uint32_t adc1_buffer[3];      /* Ay -  Az - I_m */
@@ -43,13 +43,7 @@ void UART0IntHandler(void)
 
     while(UARTCharsAvail(UART0_BASE)) //loop while there are chars
     {
-//    	UARTCharGetNonBlocking(UART0_BASE);
     	g_uart0_data.rx_buffer[g_uart0_data.rx_index++] = HWREG(UART0_BASE + UART_O_DR);
-//    	UARTCharPutNonBlocking(UART0_BASE, 'x'); //echo character
-
-//        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, GPIO_PIN_1); //blink LED
-//        SysCtlDelay(SysCtlClockGet() / (1000 * 3)); //delay ~1 msec
-//        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, 0); //turn off LED
     }
 
     g_uart0_data.new_data = 1;
@@ -89,16 +83,6 @@ void WTimer1AIntHandler(void)
      *  GPTM Interrupt Clear (GPTMICR, page 751)
      *************************************************************************/
     WTIMER1_ICR_R |= TIMER_ICR_CAMCINT;
-
-
-	// Clear the timer interrupt
-	//ROM_TimerIntClear(WTIMER1_BASE, TIMER_CAPA_EVENT);
-
-//	ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, 4);	// Turn on blue LED
-
-//	ui32Timer = ROM_TimerValueGet(WTIMER1_BASE, TIMER_A);
-//	diff = ui32Timer - ui32Timer_prev;
-//	ui32Timer_prev = ui32Timer;
 }
 
 
@@ -106,18 +90,12 @@ void WTimer1BIntHandler(void)
 {
 	// Clear the timer interrupt
 	ROM_TimerIntClear(WTIMER1_BASE, TIMER_CAPB_EVENT);
-
-//	ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, 8);	// Turn on green LED
-
 }
 
 void WTimer5AIntHandler(void)
 {
 	// Clear the timer interrupt
 	ROM_TimerIntClear(WTIMER5_BASE, TIMER_CAPA_EVENT);
-
-//	ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, 2);	// Turn on red LED
-
 }
 
 
@@ -125,8 +103,6 @@ void WTimer5BIntHandler(void)
 {
 	// Clear the timer interrupt
 	ROM_TimerIntClear(WTIMER5_BASE, TIMER_CAPB_EVENT);
-
-//	ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 14);	// Turn on all LEDs
 
 }
 

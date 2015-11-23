@@ -350,7 +350,7 @@ void PSO_ADCConfig()
 	GPIO_PORTE_AMSEL_R |= (GPIO_PIN_1 | GPIO_PIN_2);
 
     /**************************************************************************
-     * 1.6) Configure the ADC to sample at 250 ksps
+     * 1.6) Configure the ADC to sample at 500 ksps
      *
      * ADC Peripheral Configuration (ADCPC, page 888)
      *************************************************************************/
@@ -542,8 +542,11 @@ void pso_rpm_config()
 	 *      Register (GPTMTnILR).
 	 *
 	 *  GPTM Timer A Interval Load (GPTMTAILR, page 753)
+	 *
+	 *  Remark: Any value different from 1s for the period should reflect in
+	 *          the constant used in the calculation of RPM.
 	 *************************************************************************/
-	TIMER3_TAILR_R = 0x02625A00;    /* 0x02625A00 = 40.000.000 => 1s  */
+	TIMER3_TAILR_R = 0x003D0900;    /* 0x02625A00 = 40.000.000 => 1s  */
                                     /* 0x003D0900 =  4.000.000 => 0.1s */
 
 	/**************************************************************************
