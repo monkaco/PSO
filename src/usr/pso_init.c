@@ -180,20 +180,7 @@ void PSO_GPIOConfig()
 	HWREG(GPIO_PORTF_BASE + GPIO_O_PCTL) = 0x00000000;  /* GPIO clear bit PCTL */
 	HWREG(GPIO_PORTF_BASE + GPIO_O_LOCK) = 0;
 
-//	HWREG(SYSCTL_RCGCGPIO) = SYSCTL_RCGCGPIO_R3;        /* Port D activated  */
-//	HWREG(UART2_BASE + UART_O_CTL) &= ~UART_CTL_UARTEN; /* Disable UART      */
 
-
-//	ROM_GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3);	/* Set LED pins as output */
-
-//	ROM_GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, GPIO_PIN_0|GPIO_PIN_4);               /* Set buttons as input */
-//	ROM_GPIOPadConfigSet(GPIO_PORTF_BASE, GPIO_PIN_4|GPIO_PIN_0, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-
-//    HWREG(GPIO_PORTF_BASE + GPIO_O_LOCK) = GPIO_LOCK_KEY;
-//	HWREG(GPIO_PORTF_BASE + GPIO_O_CR) |= (GPIO_PIN_4|GPIO_PIN_0);   // 0x01;
-//   HWREG(GPIO_PORTF_BASE + GPIO_O_LOCK) = 0;
-//    ROM_GPIODirModeSet(GPIO_PORTF_BASE, GPIO_PIN_4|GPIO_PIN_0, GPIO_DIR_MODE_IN);
-//	ROM_GPIOPadConfigSet(GPIO_PORTF_BASE, GPIO_PIN_4|GPIO_PIN_0, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
 }
 
 
@@ -216,7 +203,9 @@ void myPWM_Init()
 void PSO_Timers()
 {
 	uint32_t ui32Period;
-	uint8_t freq = 200;		/* Desired frequency, [Hz] */
+	uint16_t freq = 500;    /* Desired frequency, [Hz] */
+	                        /* 500 Hz is the maximum allowable for 20 bytes
+	                         * over serial @ 115kbps                           */
 
 	SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
 	TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
@@ -370,7 +359,7 @@ void PSO_ADCConfig()
 
 	/**************************************************************************
 	 * 2.2) Coincident sampling of different signals. The sample sequence steps
-	 *      run coincidently in both converters (see page 802).
+	 *      run coincidentally in both converters (see page 802).
 	 *
 	 * ADC Sample Phase Control (ADCSPC, page 840)
 	 *************************************************************************/
@@ -485,7 +474,7 @@ void pso_rpm_config()
 	 * configured as "Input Edge-Count Mode" in order to count all the pulses
 	 * applied at the input pin. The second timer is configured as "Periodic"
 	 * with a period of 1 second and in every second, it's counted the addi-
-	 * tional pulses received in a window of 1 second.
+	 * tional pulses received in a window of 0.1 second.
 	 *
 	 *
 	 *************************************************************************/
@@ -594,17 +583,18 @@ void pso_rpm_config()
      * GPIO Alternate Function Select (GPIOAFSEL, page 668)
      * GPIO Port Control (GPIOPCTL, page 685)
      *************************************************************************/
-    GPIO_PORTC_LOCK_R  = GPIO_LOCK_KEY;      /* Unlocks the GPIO_CR register */
-    GPIO_PORTC_CR_R   |= GPIO_PIN_6;         /* Allow changes to PC6         */
-    SYSCTL_RCGCGPIO_R |= SYSCTL_RCGC2_GPIOC; /* GPIO Port C Run Mode Clock   */
+    //GPIO_PORTC_LOCK_R  = GPIO_LOCK_KEY;      /* Unlocks the GPIO_CR register */
+    //GPIO_PORTC_CR_R   |= GPIO_PIN_6;         /* Allow changes to PC6         */
+    //SYSCTL_RCGCGPIO_R |= SYSCTL_RCGC2_GPIOC;
+    SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R2; /* GPIO Port C Run Mode Clock   */
     										 /* Gating Control               */
-    GPIO_PORTC_DIR_R  &= ~(GPIO_DIR_MODE_IN | GPIO_PIN_6); /* Only for inputs*/
+    GPIO_PORTC_DIR_R &= ~(GPIO_PIN_6);                 /* 0: PC6 as input   */
     GPIO_PORTC_AFSEL_R |= GPIO_PIN_6;        /* Alternate function for PC6   */
-    GPIO_PORTC_PUR_R  |=  GPIO_PIN_6;    /* Enable pull up resistors for PC6 */
-    GPIO_PORTC_DEN_R  |= GPIO_PIN_6;               /* Enable digital pins PC6*/
+    GPIO_PORTC_PUR_R |=  GPIO_PIN_6;    /* Enable pull up resistors for PC6 */
+    GPIO_PORTC_DEN_R |= GPIO_PIN_6;               /* Enable digital pins PC6*/
     GPIO_PORTC_AMSEL_R &= ~(GPIO_PIN_6);          /* Disable analog function */
-    GPIO_PORTC_PCTL_R  |= GPIO_PCTL_PC6_WT1CCP0;       /* Port Mux Control 6 */
-    GPIO_PORTC_LOCK_R = GPIO_LOCK_UNLOCKED; /* The GPIOCR register is locked */
+    GPIO_PORTC_PCTL_R |= GPIO_PCTL_PC6_WT1CCP0;       /* Port Mux Control 6 */
+    //GPIO_PORTC_LOCK_R = GPIO_LOCK_UNLOCKED; /* The GPIOCR register is locked */
 
     /**************************************************************************
 	 * 1.0) Enable the Wide Timer 0 using the  RCGCWTIMER register.
@@ -735,17 +725,17 @@ void pso_pwm_config()
      * GPIO Alternate Function Select (GPIOAFSEL, page 668)
      * GPIO Port Control (GPIOPCTL, page 685)
      *************************************************************************/
-    GPIO_PORTC_LOCK_R  = GPIO_LOCK_KEY;      /* Unlocks the GPIO_CR register */
-    GPIO_PORTC_CR_R   |= GPIO_PIN_7;         /* Allow changes to PC6         */
-    SYSCTL_RCGCGPIO_R |= SYSCTL_RCGC2_GPIOC; /* GPIO Port C Run Mode Clock   */
+   // GPIO_PORTC_LOCK_R  = GPIO_LOCK_KEY;      /* Unlocks the GPIO_CR register */
+   // GPIO_PORTC_CR_R   |= GPIO_PIN_7;         /* Allow changes to PC6         */
+    SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R2; /* GPIO Port C Run Mode Clock   */
     										 /* Gating Control               */
-    GPIO_PORTC_DIR_R  |=  GPIO_PIN_7;        /* 1: Output                    */
+    GPIO_PORTC_DIR_R  |=  GPIO_PIN_7;        /* 1: PC7 as output     */
     GPIO_PORTC_AFSEL_R |= GPIO_PIN_7;        /* Alternate function for PC7   */
 //	    GPIO_PORTC_PUR_R  |=  GPIO_PIN_7;    /* Enable pull up resistors for PC7 */
     GPIO_PORTC_DEN_R  |= GPIO_PIN_7;              /* Enable digital pins PC7 */
     GPIO_PORTC_AMSEL_R &= ~(GPIO_PIN_7);          /* Disable analog function */
     GPIO_PORTC_PCTL_R  |= GPIO_PCTL_PC7_WT1CCP1;       /* Port Mux Control 7 */
-    GPIO_PORTC_LOCK_R = GPIO_LOCK_UNLOCKED; /* The GPIOCR register is locked */
+//    GPIO_PORTC_LOCK_R = GPIO_LOCK_UNLOCKED; /* The GPIOCR register is locked */
 
     /**************************************************************************
 	 * 1.0) Enable the Wide Timer 0 using the  RCGCWTIMER register.
@@ -875,3 +865,393 @@ void pso_pwm_config()
 //    NVIC_EN3_R = 0x00000001;
 
 }
+
+/******************************************************************************
+ * SPI 0 Configuration
+ * ----------------------------------------------------------------------------
+ * SPI Peripheral 0 (SSI0) configured as master to write/read data to/from
+ * external memory (SD card).
+ *
+ * Master
+ *
+ * Pinout:
+ *   PA2: SSI0Clk
+ *   PA3: SSI0Fss
+ *   PA4: SSI0Rx
+ *   PA5: SSI0Tx
+ *
+ * f_clk = 10 MHz
+ *
+ ******************************************************************************/
+void pso_spi0_config()
+{
+	volatile uint32_t delay;
+
+	/**************************************************************************
+	 * Use SSI2, PB2 to communicate with the SDC.
+	 *
+	 * CS is PB2
+	 * CS can be implemented with any other GPIO pin. It's not been used the
+	 * SSI0Fss because sometimes its state changes arbitrarily.
+	 *************************************************************************/
+	  SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R1;              /* Enable Port B */
+	  delay = SYSCTL_RCGCGPIO_R;
+	  GPIO_PORTB_PUR_R |= GPIO_PIN_2;           /* Enable weak pullup on PB2 */
+	  GPIO_PORTB_DIR_R |= GPIO_PIN_2;                     /* Make PB2 output */
+	  GPIO_PORTB_DR4R_R |= GPIO_PIN_2;              /* 4mA output on outputs */
+	  //GPIO_PORTA_DATA_BITS_R |= GPIO_PIN_3;
+	  GPIO_PORTB_PCTL_R &= ~GPIO_PCTL_PB2_M;
+	  GPIO_PORTB_AMSEL_R &= ~GPIO_PIN_2;     /* Disable analog funct. on PB2 */
+	  GPIO_PORTB_DEN_R |= GPIO_PIN_2;           /* Enable digital I/O on PB2 */
+
+
+	/*** 15.4 Module Initialization ***/
+
+	/**************************************************************************
+	 * 1.1) Enable the ADC clock using the RCGCSSI register (see page 344).
+	 *
+	 * Synchronous Serial Interface Run Mode Clock Gating Control (RCGCSSI,344)
+	 *************************************************************************/
+	SYSCTL_RCGCSSI_R |= SYSCTL_SCGCSSI_S0;          /* Enable SSI Module 0   */
+
+	/**************************************************************************
+	 * 1.2) Enable the clock to the appropriate GPIO modules via the RCGCGPIO
+	 *    register (page 338). To find out which GPIO port to enable, refer to
+	 *    "Signal Description" on page 801.
+	 *    ---------------------------------------------------------------------
+	 *    Port A:
+	 *             PA2 -> SSI0Clk
+	 *             PA3 -> SSI0Fss
+	 *             PA4 -> SSI0Rx
+	 *             PA5 -> SSI0Tx
+	 *
+	 * General-Purpose Input/Output Run Mode Clock Gating Control (RCGCGPIO,
+	 * page 338)
+	 *************************************************************************/
+	SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R0;                /* Enable Port A */
+    delay = SYSCTL_RCGC2_R;               /* allow time to finish activating */
+
+	/**************************************************************************
+	 *  1.3) Set the GPIO 'AFSEL' bits for the ADC input pins (page 668). To
+	 *     determine which GPIOs to configure, see Table 23-4 on page 1337.
+	 *     -------------------------------------------------------------------
+	 *     DIRECTION
+	 *     Inputs (0):
+	 *             PA4 <- SSI0Rx
+	 *
+	 *     Outputs (1):
+	 *             PA2 -> SSI0Clk
+	 *             PA3 -> SSI0Fss
+	 *             PA5 -> SSI0Tx
+	 *
+	 *     ALTERNATE FUNCTION: Enabled pins with 1
+	 *
+	 *     DIGITAL PINS: Enabled pins with 1
+	 *
+	 *************************************************************************/
+	//GPIO_PORTA_LOCK_R = GPIO_LOCK_KEY;       /* Unlocks the GPIO_CR register */
+	GPIO_PORTA_DIR_R &=  ~(GPIO_PIN_4);                            /* Input  */
+	GPIO_PORTA_DIR_R |=  (GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_5);   /* Output */
+	GPIO_PORTA_AFSEL_R |= (GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5);
+	GPIO_PORTA_DEN_R |= (GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5);
+	GPIO_PORTA_PUR_R |= (GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_5);/* Pull-up on */
+	/*  GPIO 4-mA Drive Select  */
+	GPIO_PORTA_DR4R_R |= (GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5);
+	/* Disable analog function */
+	GPIO_PORTA_AMSEL_R &= ~(GPIO_PIN_2 | GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5);
+
+	/**************************************************************************
+	 * 1.4) Configure the PMCnfields in the GPIOPCTL register to assign the SSI
+	 *      signals to the appropriate pins. See page 685 and Table 23-5 on
+	 *      page 1344.
+	 *
+	 *      Port A:
+	 *             PA2 -> SSI0Clk
+	 *             PA3 -> SSI0Fss
+	 *             PA4 -> SSI0Rx
+	 *             PA5 -> SSI0Tx
+	 *
+	 *  GPIO Port Control (GPIOPCTL, page 685)
+	 *  Table 23-5. GPIO Pins and Alternate Functions (page, 1344)
+	 *************************************************************************/
+	GPIO_PORTA_PCTL_R  |= GPIO_PCTL_PA2_SSI0CLK;           /* SSI0CLK on PA2 */
+	GPIO_PORTA_PCTL_R  |= GPIO_PCTL_PA3_SSI0FSS;           /* SSI0FSS on PA3 */
+	GPIO_PORTA_PCTL_R  |= GPIO_PCTL_PA4_SSI0RX;            /* SSI0RX on PA4  */
+	GPIO_PORTA_PCTL_R  |= GPIO_PCTL_PA5_SSI0TX;            /* SSI0TX on PA5  */
+    //GPIO_PORTA_LOCK_R = GPIO_LOCK_UNLOCKED; /* The GPIOCR register is locked */
+
+    /**************************************************************************
+     * 1.5.1) Ensure that the SSEbit in the SSICR1 register is clear before
+     *        making any configuration changes.
+     *
+     *
+     * SSI Control 1 (SSICR1, page 966)
+     *************************************************************************/
+    SSI0_CR1_R &= ~(SSI_CR1_SSE);              /* SSI0 operation is disabled */
+//    SSI0_CR1_R |= SSI_CR1_LBM; /* Loopback mode enabled only for debug phase */
+
+    /**************************************************************************
+     * 1.5.2) Select whether the SSI is a master or slave:
+     *
+     *        a) For master operations, set the SSICR1 register to 0x0000.0000.
+     *
+     * SSI Control 1 (SSICR1, page 966)
+     *************************************************************************/
+    SSI0_CR1_R &= ~SSI_CR1_MS;                                     /* Master */
+
+    /**************************************************************************
+	 * 1.5.3) Configure the SSI clock source by writing to the SSICC register
+	 *        System clock (based on clock source and divisor factor)
+	 *
+	 * SSI Clock Configuration (SSICC, page 979)
+	 *************************************************************************/
+    SSI0_CC_R = SSI_CC_CS_SYSPLL;                            /* System clock */
+
+    /**************************************************************************
+	 * 1.5.4) Configure the clock prescale divisor by writing the SSICPSR
+	 *        register.
+	 *
+	 *       SSIClk  =  SysClk  /  (CPSDVSR  *  (1  +  SCR))
+	 *               =   40MHz /   (  10     *  (1  +   9 ))
+	 *               =   40MHz / 100
+	 *
+	 *      [SSIClk  =    400 kHz]
+	 *
+	 *                       ->   CPSDVSR = 10
+	 *                       ->   SCR     = 9
+	 *
+	 *       This value must be an even number from 2 to 254, depending on the
+     *       frequency of SSIClk. The LSB always returns 0 on reads.
+	 *
+	 * SSI Clock Prescale (SSICPSR, page 971)
+	 *************************************************************************/
+    SSI0_CPSR_R |= 0x0000000A;                      /* CPSDVSR = 10 (0x0A=10)*/
+
+    /**************************************************************************
+	 * 1.5.5) Write the SSICR0 register with the following configuration:
+	 *
+	 *       - Serial clock rate (SCR)
+	 *           BR = SysClk/(CPSDVSR * (1 + SCR))
+	 *              = 40e6/(4 * (1 + 9))
+	 *              -> SCR = 9
+	 *
+	 *       - Desired clock phase/polarity (SPH and SPO)
+	 *          SPO:
+	 *            0: Low steady state clk's line; <--
+	 *            1: High steady state clk's line.
+	 *
+	 *          SPH:
+	 *            0: Data captured on the 1st clk edge; <--
+	 *            1: Data captured on the 2nd clk edge.
+	 *
+	 *       - The protocol mode: Freescale SPI, TI SSF, MICROWIRE (FRF)
+	 *
+	 *       - The data size (DSS): 8 bits
+	 *
+	 * Excerpt from FatFS: "SPI mode 0 (CPHA=0, CPOL=0) is the proper setting
+	 *                      to control MMC/SDC"
+	 *
+	 * SSI Control 0 (SSICR0, page 964)
+	 *************************************************************************/
+    SSI0_CR0_R |= ((SSI_CR0_SCR_M & 0x00000900) |        /* (0x00000900 : 9) */
+    		       SSI_CR0_FRF_MOTO |                    /* Freescale SPI    */
+    		       SSI_CR0_DSS_8);                       /* 8-bits data byte */
+
+    SSI0_CR0_R &= ~(SSI_CR0_SPO | SSI_CR0_SPH);            /* CPOL=0, CPHA=0 */
+
+    /**************************************************************************
+     * 1.5.6) Ensure that the SSEbit in the SSICR1 register is clear before
+     *        making any configuration changes.
+     *
+     *
+     * SSI Control 1 (SSICR1, page 966)
+     *************************************************************************/
+    SSI0_CR1_R |= SSI_CR1_SSE;                               /* SSI0 enabled */
+
+}
+
+void pso_spi2_config()
+{
+	volatile uint32_t delay;
+
+	/**************************************************************************
+	 * Use SSI2, PA3 to communicate with the SDC.
+	 *
+	 * CS is PA3
+	 * CS can be implemented with any other GPIO pin. It's not been used the
+	 * SSI2Fss because sometimes its state changes arbitrarily.
+	 *************************************************************************/
+	  SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R0;              /* Enable Port A */
+	  delay = SYSCTL_RCGCGPIO_R;
+	  GPIO_PORTA_PUR_R |= GPIO_PIN_3;           /* Enable weak pullup on PA3 */
+	  GPIO_PORTA_DIR_R |= GPIO_PIN_3;                     /* Make PA3 output */
+	  GPIO_PORTA_DR4R_R |= GPIO_PIN_3;              /* 4mA output on outputs */
+	  //GPIO_PORTA_DATA_BITS_R |= GPIO_PIN_3;
+	  GPIO_PORTA_PCTL_R &= ~GPIO_PCTL_PA3_M;
+	  GPIO_PORTA_AMSEL_R &= ~GPIO_PIN_3;     /* Disable analog funct. on PA3 */
+	  GPIO_PORTA_DEN_R |= GPIO_PIN_3;           /* Enable digital I/O on PA3 */
+
+	/*** 15.4 Module Initialization ***/
+
+	/**************************************************************************
+	 * 1.1) Enable the ADC clock using the RCGCSSI register (see page 344).
+	 *
+	 * Synchronous Serial Interface Run Mode Clock Gating Control (RCGCSSI,344)
+	 *************************************************************************/
+	SYSCTL_RCGCSSI_R |= SYSCTL_SCGCSSI_S2;          /* Enable SSI Module 2   */
+
+	/**************************************************************************
+	 * 1.2) Enable the clock to the appropriate GPIO modules via the RCGCGPIO
+	 *    register (page 338). To find out which GPIO port to enable, refer to
+	 *    "Signal Description" on page 801.
+	 *    ---------------------------------------------------------------------
+	 *    Port B:
+	 *             PB4 -> SSI0Clk
+	 *             PB5 -> SSI0Fss
+	 *             PB6 -> SSI0Rx
+	 *             PB7 -> SSI0Tx
+	 *
+	 * General-Purpose Input/Output Run Mode Clock Gating Control (RCGCGPIO,
+	 * page 338)
+	 *************************************************************************/
+	SYSCTL_RCGCGPIO_R |= SYSCTL_RCGCGPIO_R1;                /* Enable Port B */
+    while((SYSCTL_PRGPIO_R & SYSCTL_PRGPIO_R1) == 0){};            /* Ready? */
+
+	/**************************************************************************
+	 *  1.3) Set the GPIO 'AFSEL' bits for the ADC input pins (page 668). To
+	 *     determine which GPIOs to configure, see Table 23-4 on page 1337.
+	 *     -------------------------------------------------------------------
+	 *     DIRECTION
+	 *     Inputs (0):
+	 *             PB6 <- SSI0Rx
+	 *
+	 *     Outputs (1):
+	 *             PB4 -> SSI0Clk
+	 *             PB5 -> SSI0Fss
+	 *             PB7 -> SSI0Tx
+	 *
+	 *     ALTERNATE FUNCTION: Enabled pins with 1
+	 *
+	 *     DIGITAL PINS: Enabled pins with 1
+	 *
+	 *************************************************************************/
+	//GPIO_PORTA_LOCK_R = GPIO_LOCK_KEY;       /* Unlocks the GPIO_CR register */
+	GPIO_PORTB_DIR_R &=  ~(GPIO_PIN_6);                            /* Input  */
+	GPIO_PORTB_DIR_R |=  (GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_7);   /* Output */
+	GPIO_PORTB_AFSEL_R |= (GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7);
+	GPIO_PORTB_DEN_R |= (GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7);
+	GPIO_PORTB_PUR_R |= (GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_7);/* Pull-up on */
+	/*  GPIO 4-mA Drive Select  */
+	GPIO_PORTB_DR4R_R |= (GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7);
+	/* Disable analog function */
+	GPIO_PORTB_AMSEL_R &= ~(GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7);
+
+	/**************************************************************************
+	 * 1.4) Configure the PMCnfields in the GPIOPCTL register to assign the SSI
+	 *      signals to the appropriate pins. See page 685 and Table 23-5 on
+	 *      page 1344.
+	 *
+	 *      Port A:
+	 *             PB4 -> SSI0Clk
+	 *             PB5 -> SSI0Fss
+	 *             PB6 -> SSI0Rx
+	 *             PB7 -> SSI0Tx
+	 *
+	 *  GPIO Port Control (GPIOPCTL, page 685)
+	 *  Table 23-5. GPIO Pins and Alternate Functions (page, 1344)
+	 *************************************************************************/
+	GPIO_PORTB_PCTL_R  |= GPIO_PCTL_PB4_SSI2CLK;           /* SSI0CLK on PB4 */
+	GPIO_PORTB_PCTL_R  |= GPIO_PCTL_PB5_SSI2FSS;           /* SSI0FSS on PB5 */
+	GPIO_PORTB_PCTL_R  |= GPIO_PCTL_PB6_SSI2RX;            /* SSI0RX on PB6  */
+	GPIO_PORTB_PCTL_R  |= GPIO_PCTL_PB7_SSI2TX;            /* SSI0TX on PB7  */
+    //GPIO_PORTA_LOCK_R = GPIO_LOCK_UNLOCKED; /* The GPIOCR register is locked */
+
+    /**************************************************************************
+     * 1.5.1) Ensure that the SSEbit in the SSICR1 register is clear before
+     *        making any configuration changes.
+     *
+     *
+     * SSI Control 1 (SSICR1, page 966)
+     *************************************************************************/
+    SSI2_CR1_R &= ~(SSI_CR1_SSE);              /* SSI2 operation is disabled */
+//    SSI0_CR1_R |= SSI_CR1_LBM; /* Loopback mode enabled only for debug phase */
+
+    /**************************************************************************
+     * 1.5.2) Select whether the SSI is a master or slave:
+     *
+     *        a) For master operations, set the SSICR1 register to 0x0000.0000.
+     *
+     * SSI Control 1 (SSICR1, page 966)
+     *************************************************************************/
+    SSI2_CR1_R &= ~SSI_CR1_MS;                                     /* Master */
+
+    /**************************************************************************
+	 * 1.5.3) Configure the SSI clock source by writing to the SSICC register
+	 *        System clock (based on clock source and divisor factor)
+	 *
+	 * SSI Clock Configuration (SSICC, page 979)
+	 *************************************************************************/
+    SSI2_CC_R = SSI_CC_CS_SYSPLL;                            /* System clock */
+
+    /**************************************************************************
+	 * 1.5.4) Configure the clock prescale divisor by writing the SSICPSR
+	 *        register.
+	 *
+	 *       SSIClk  =  SysClk  /  (CPSDVSR  *  (1  +  SCR))
+	 *               =   40MHz /   (  10     *  (1  +   9 ))
+	 *               =   40MHz / 100
+	 *
+	 *      [SSIClk  =    400 kHz]
+	 *
+	 *                       ->   CPSDVSR = 10
+	 *                       ->   SCR     = 9
+	 *
+	 *       This value must be an even number from 2 to 254, depending on the
+     *       frequency of SSIClk. The LSB always returns 0 on reads.
+	 *
+	 * SSI Clock Prescale (SSICPSR, page 971)
+	 *************************************************************************/
+    SSI2_CPSR_R |= 0x0000000A;                      /* CPSDVSR = 10 (0x0A=10)*/
+
+    /**************************************************************************
+	 * 1.5.5) Write the SSICR0 register with the following configuration:
+	 *
+	 *       - Serial clock rate (SCR)
+	 *           BR = SysClk/(CPSDVSR * (1 + SCR))
+	 *              = 40e6/(4 * (1 + 9))
+	 *              -> SCR = 9
+	 *
+	 *       - Desired clock phase/polarity (SPH and SPO)
+	 *          SPO:
+	 *            0: Low steady state clk's line; <--
+	 *            1: High steady state clk's line.
+	 *
+	 *          SPH:
+	 *            0: Data captured on the 1st clk edge; <--
+	 *            1: Data captured on the 2nd clk edge.
+	 *
+	 *       - The protocol mode: Freescale SPI, TI SSF, MICROWIRE (FRF)
+	 *
+	 *       - The data size (DSS): 8 bits
+	 *
+	 * Excerpt from FatFS: "SPI mode 0 (CPHA=0, CPOL=0) is the proper setting
+	 *                      to control MMC/SDC"
+	 *
+	 * SSI Control 0 (SSICR0, page 964)
+	 *************************************************************************/
+    SSI2_CR0_R |= ((SSI_CR0_SCR_M & 0x00000900) |        /* (0x00000900 : 9) */
+    		       SSI_CR0_FRF_MOTO |                    /* Freescale SPI    */
+    		       SSI_CR0_DSS_8);                       /* 8-bits data byte */
+
+    SSI2_CR0_R &= ~(SSI_CR0_SPO | SSI_CR0_SPH);            /* CPOL=0, CPHA=0 */
+
+    /**************************************************************************
+     * 1.5.6) Ensure that the SSEbit in the SSICR1 register is clear before
+     *        making any configuration changes.
+     *
+     *
+     * SSI Control 1 (SSICR1, page 966)
+     *************************************************************************/
+    SSI2_CR1_R |= SSI_CR1_SSE;                               /* SSI0 enabled */
+}
+

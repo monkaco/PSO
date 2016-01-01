@@ -24,6 +24,7 @@
 #include "pso_init.h"
 #include "pso_uart.h"
 #include "hw_ints.h"
+#include "diskio.h" /* FatFs timer - disk_timerproc () */
 
 extern uart_raw_data_t g_uart0_data; /*Defined in "pos_uart.c" */
 uint8_t g_timer_a0_scan_flag = 0U;   /* Main: 500k/4 = 125 kHz scan rate */
@@ -140,6 +141,9 @@ void Timer3AIntHandler(void)
 	g_timer_a3_scan_flag = 1U;
 
 
+
+    disk_timerproc (); /* FatFs timer */
+
 	GPIO_PORTF_DATA_R ^= GPIO_PIN_2;
 }
 
@@ -167,6 +171,8 @@ void ADC0SS1IntHandler(void)
 	adc1_buffer[1] = ADC1_SSFIFO1_R;    /* PD3_AIN4_Az      */
 
 	g_timer_a0_scan_flag = 1U;
+
+//	GPIO_PORTF_DATA_R ^= GPIO_PIN_1;    /* Red LED on PF1 */
 }
 
 void ADC1SS1IntHandler(void)

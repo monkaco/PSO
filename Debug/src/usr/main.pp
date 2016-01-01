@@ -31,6 +31,9 @@ src/usr/main.obj: F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/usr/ulin
 src/usr/main.obj: F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/usr/ulink/ulink_pso.h
 src/usr/main.obj: F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/sys/adc.h
 src/usr/main.obj: F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/usr/pso_pwm.h
+src/usr/main.obj: F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/src/usr/ff09b/src/ff.h
+src/usr/main.obj: F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/src/usr/ff09b/src/integer.h
+src/usr/main.obj: F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/src/usr/ff09b/src/ffconf.h
 
 ../src/usr/main.c: 
 C:/ti/ccsv5/tools/compiler/arm_5.1.1/include/stdio.h: 
@@ -63,3 +66,6 @@ F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/usr/ulink/ulink_types.h:
 F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/usr/ulink/ulink_pso.h: 
 F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/sys/adc.h: 
 F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/usr/pso_pwm.h: 
+F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/src/usr/ff09b/src/ff.h: 
+F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/src/usr/ff09b/src/integer.h: 
+F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/src/usr/ff09b/src/ffconf.h: 

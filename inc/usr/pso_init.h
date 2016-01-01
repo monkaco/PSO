@@ -23,5 +23,7 @@ void myISR_Config(void);
 void PSO_ADCConfig(void);
 void pso_rpm_config(void);
 void pso_pwm_config(void);
+void pso_spi0_config(void);
+void pso_spi2_config(void);
 
 #endif /* PSO_INIT_H_ */

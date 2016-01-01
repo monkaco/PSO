@@ -24,6 +24,8 @@ src/usr/pso_isr.obj: F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/sys/h
 src/usr/pso_isr.obj: F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/usr/pso_init.h
 src/usr/pso_isr.obj: F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/usr/pso_uart.h
 src/usr/pso_isr.obj: F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/sys/hw_ints.h
+src/usr/pso_isr.obj: F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/src/usr/ff09b/src/diskio.h
+src/usr/pso_isr.obj: F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/src/usr/ff09b/src/integer.h
 
 ../src/usr/pso_isr.c: 
 C:/ti/ccsv5/tools/compiler/arm_5.1.1/include/stdint.h: 
@@ -49,3 +51,5 @@ F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/sys/hw_uart.h:
 F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/usr/pso_init.h: 
 F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/usr/pso_uart.h: 
 F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/inc/sys/hw_ints.h: 
+F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/src/usr/ff09b/src/diskio.h: 
+F:/Dropbox/myShared/Engenharia/Codigos/Tiva-C/PSO/src/usr/ff09b/src/integer.h: 

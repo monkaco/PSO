@@ -98,6 +98,9 @@ S64_DEPS__QUOTED :=
 # Every subdirectory with source files must be described here
 SUBDIRS := \
 src/usr \
+src/usr/ff09b/src/option \
+src/usr/ff09b/src \
+src/usr/ff09b \
 src/sys \
 library \
 cmd \
