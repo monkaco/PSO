@@ -46,6 +46,7 @@
 #include <stdbool.h>
 #include "gpio.h"
 #include "hw_memmap.h"      /* Macros defining the memory map of the device. */
+#include "tm4c123gh6pm.h"
 
 /* Turn on red LED */
 void PSO_LEDRedOn (void)
@@ -82,6 +83,12 @@ void PSO_LEDBlueOff (void)
 {
     GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, 0x08);
 }
+/* Toggle blue LED */
+void led_blue_toggle (void)
+{
+	GPIO_PORTF_DATA_R ^= GPIO_PIN_2;    /* Turn on red LED */
+}
+
 
 /* Turn on white LED */
 void PSO_LEDWhiteOn (void)

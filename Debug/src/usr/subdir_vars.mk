@@ -4,6 +4,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../src/usr/fifo.c \
 ../src/usr/main.c \
 ../src/usr/pso_data.c \
 ../src/usr/pso_init.c \
@@ -15,6 +16,7 @@ C_SRCS += \
 ../src/usr/ulink_bridge.c 
 
 OBJS += \
+./src/usr/fifo.obj \
 ./src/usr/main.obj \
 ./src/usr/pso_data.obj \
 ./src/usr/pso_init.obj \
@@ -26,6 +28,7 @@ OBJS += \
 ./src/usr/ulink_bridge.obj 
 
 C_DEPS += \
+./src/usr/fifo.pp \
 ./src/usr/main.pp \
 ./src/usr/pso_data.pp \
 ./src/usr/pso_init.pp \
@@ -37,6 +40,7 @@ C_DEPS += \
 ./src/usr/ulink_bridge.pp 
 
 C_DEPS__QUOTED += \
+"src\usr\fifo.pp" \
 "src\usr\main.pp" \
 "src\usr\pso_data.pp" \
 "src\usr\pso_init.pp" \
@@ -48,6 +52,7 @@ C_DEPS__QUOTED += \
 "src\usr\ulink_bridge.pp" 
 
 OBJS__QUOTED += \
+"src\usr\fifo.obj" \
 "src\usr\main.obj" \
 "src\usr\pso_data.obj" \
 "src\usr\pso_init.obj" \
@@ -59,6 +64,7 @@ OBJS__QUOTED += \
 "src\usr\ulink_bridge.obj" 
 
 C_SRCS__QUOTED += \
+"../src/usr/fifo.c" \
 "../src/usr/main.c" \
 "../src/usr/pso_data.c" \
 "../src/usr/pso_init.c" \

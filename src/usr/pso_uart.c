@@ -52,40 +52,13 @@ uint8_t* g_tx_buffer_uart;
 *******************************************************************************/
 uint8_t uartBatchWrite (uint32_t ui32Base, uint16_t* txBuffer, const uint8_t bytesToWrite)
 {
-    uint16_t i;
-    uint8_t returnval;
-    uint8_t buffer[255];
+    static uint16_t i;
+    static uint8_t returnval;
 
-/*
-	for (i = 0; i < 2*bytesToWrite; i++)
-	{
-		if(i%2==0)
-		{
-			buffer[i] = txBuffer[i/2];
-		}
-		else
-		{
-			buffer[i] = txBuffer[i/2] >> 8;
-		}
-	}
-
-    for (i = 0U; i < 2*bytesToWrite; i++)
-    {
-    	// Wait until space is available.
-         while(HWREG(ui32Base + UART_O_FR) & UART_FR_TXFF)
-         {
-         }
-         // Send the char.
-         HWREG(ui32Base + UART_O_DR) =  buffer[i];
-
-
-
-    }
-*/
 
     for (i = 0U; i < bytesToWrite; i++)
     {
-    	// Wait until space is available.
+         // Wait until space is available.
          while(HWREG(ui32Base + UART_O_FR) & UART_FR_TXFF)
          {
          }

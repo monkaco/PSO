@@ -49,7 +49,10 @@
 #include "tm4c123gh6pm.h"	/* Interrupt and register assignments on the Tiva C LauchPad board */
 #include "pso_pwm.h"
 
+uint8_t pwm_throttle = 0U;
 
+static volatile
+uint16_t inc, dec;    /* 100Hz decrement timer */
 
 /* Turn off buzzer */
 
@@ -75,7 +78,7 @@ uint8_t set_pwm_position (uint8_t pos)
 	{
 	    duty_cycle = 400*pos + 40000;
 	    WTIMER1_TBMATCHR_R = duty_cycle;
-	    GPIO_PORTF_DATA_R ^= GPIO_PIN_2;
+//	    GPIO_PORTF_DATA_R ^= GPIO_PIN_2;
 
 	    returnval = 1U;
     }
@@ -87,4 +90,159 @@ uint8_t set_pwm_position (uint8_t pos)
     return returnval;
 }
 
+/* This function must be called in period of 100ms                        */
+void increment (void)
+{
+    uint16_t n;
 
+    n = inc;                        /* 100Hz decrement timer */
+    inc = ++n;
+
+}
+
+/* This function must be called in period of 100ms                        */
+void decrement (void)
+{
+    uint16_t n;
+
+    n = dec;                        /* 100Hz decrement timer */
+    if (n) dec = --n;
+
+}
+
+/*******************************************************************************
+* Function Name  : fun_linear
+* Input          : double   delta_t [1/interrupt_period]
+*                : uint16_t t_f     [> 0]
+*                : uint8_t  y_i     [0,100]
+*                : uint8_t  y_f     [0,100]
+* Output         : None
+* Return         : 1 if success, 0 if fail
+* Description    : Generates a linear function based on the final time (tf) and
+*                  the start (y_i) and final value (y_f).
+*******************************************************************************/
+uint8_t fun_linear (double delta_t, uint16_t t_f, uint8_t  y_i, uint8_t  y_f)
+{
+	double ang_coeff;
+	static double lin_coeff;
+	uint16_t num_points = 0U;
+	uint8_t returnval = 0U;
+
+	num_points = (uint16_t)(t_f / delta_t);
+	ang_coeff = (y_f - y_i)/num_points;
+	lin_coeff = y_i;
+
+	if (inc >= num_points)      /* Function executed */
+	{
+	    returnval = 1U;
+	    lin_coeff = (double)((inc * ang_coeff) + lin_coeff);
+	}
+	else// if (ang_coeff >= 0.0)   /* Positive angular coeff. */
+	{
+		pwm_throttle = (uint8_t)((inc * ang_coeff) + lin_coeff);
+		set_pwm_position(pwm_throttle);
+		returnval = 0U;
+	}
+
+
+
+    return returnval;
+}
+
+/*******************************************************************************
+* Function Name  : fun_trapezoid
+* Input          : double   delta_t [1/interrupt_period]
+*                : uint16_t t_f     [> 0]
+*                : uint8_t  y_i     [0,100]
+*                : uint8_t  y_f     [0,100]
+* Output         : None
+* Return         : 1 if success, 0 if fail
+* Description    : Generates a linear function based on the final time (tf) and
+*                  the start (y_i) and final value (y_f).
+*******************************************************************************/
+uint8_t fun_trapezoid (void)
+{
+
+	uint8_t returnval = 0U;
+	static uint8_t state = 0U;
+
+    /* Finite State Machine (FSM) */
+    switch (state)
+    {
+    /* State 0:  */
+        case 0:
+        	inc = 0U;
+        	state = 1U;
+        	returnval = 0U;
+        	break;
+
+	/* State 1:*/
+		case 1:
+			if (fun_linear (TIMER3_10HZ, 3, 0, 0))
+			{
+				state = 2U;        /* Goes to the next state */
+				inc = 0U;          /* Counter reset          */
+			}
+
+			break;
+	/* State 2: */
+		case 2:
+			if (fun_linear (TIMER3_10HZ, 10, 0, 100))
+			{
+				state = 3U;        /* Goes to the next state */
+				inc = 0U;          /* Counter reset          */
+			}
+			break;
+	/* State 3: */
+		case 3:
+			if (fun_linear (TIMER3_10HZ, 5, 100, 100))
+			{
+				state = 4U;        /* Goes to the next state */
+				inc = 0U;          /* Counter reset          */
+			}
+			break;
+	/* State 4: */
+			case 4:
+				if (fun_linear (TIMER3_10HZ, 10, 100, 0))
+				{
+					state = 5U;        /* Goes to the next state */
+					inc = 0U;          /* Counter reset          */
+				}
+				break;
+	/* State 5: */
+		case 5:
+			if (fun_linear (TIMER3_10HZ, 5, 0, 0))
+			{
+				state = 6U;        /* Goes to the next state */
+				inc = 0U;          /* Counter reset          */
+			}
+			break;
+	/* State 6: */
+		case 6:
+			if (fun_linear (TIMER3_10HZ, 8, 60, 60))
+			{
+				state = 7U;        /* Goes to the next state */
+				inc = 0U;          /* Counter reset          */
+			}
+			break;
+	/* State 7: */
+		case 7:
+			if (fun_linear (TIMER3_10HZ, 5, 0, 0))
+			{
+				state = 8U;        /* Goes to the next state */
+				inc = 0U;          /* Counter reset          */
+			}
+			break;
+	/* State 8: */
+		case 8:
+			state = 0U;
+			returnval = 1U;
+			break;
+		default:
+			/* code */
+			break;
+
+	}
+
+    return returnval;
+}

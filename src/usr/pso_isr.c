@@ -24,15 +24,20 @@
 #include "pso_init.h"
 #include "pso_uart.h"
 #include "hw_ints.h"
+#include "diskio.h" /* FatFs timer - disk_timerproc () */
+#include "pso_pwm.h" /* Function generator - inc/dec funcs */
 
 extern uart_raw_data_t g_uart0_data; /*Defined in "pos_uart.c" */
-uint8_t g_timer_a0_scan_flag = 0U;
-uint8_t g_timer_a3_scan_flag = 0U;   /* 1 Hz scan rate */
+uint8_t g_timer_a0_scan_flag = 0U;   /* Main: 500k/4 = 125 kHz scan rate */
+uint8_t g_timer_a3_scan_flag = 0U;   /* RPM: 10 Hz scan rate */
 
 volatile uint32_t adc0_buffer[3];      /* Ax - Thr - V_m */
 volatile uint32_t adc1_buffer[3];      /* Ay -  Az - I_m */
 uint32_t delta;
 uint32_t wt1cpp0_tav_buffer;  /* RPM */
+
+/* Debug */
+uint16_t discard_0, discard_1;
 
 void UART0IntHandler(void)
 {
@@ -43,13 +48,7 @@ void UART0IntHandler(void)
 
     while(UARTCharsAvail(UART0_BASE)) //loop while there are chars
     {
-//    	UARTCharGetNonBlocking(UART0_BASE);
     	g_uart0_data.rx_buffer[g_uart0_data.rx_index++] = HWREG(UART0_BASE + UART_O_DR);
-//    	UARTCharPutNonBlocking(UART0_BASE, 'x'); //echo character
-
-//        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, GPIO_PIN_1); //blink LED
-//        SysCtlDelay(SysCtlClockGet() / (1000 * 3)); //delay ~1 msec
-//        GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, 0); //turn off LED
     }
 
     g_uart0_data.new_data = 1;
@@ -89,16 +88,6 @@ void WTimer1AIntHandler(void)
      *  GPTM Interrupt Clear (GPTMICR, page 751)
      *************************************************************************/
     WTIMER1_ICR_R |= TIMER_ICR_CAMCINT;
-
-
-	// Clear the timer interrupt
-	//ROM_TimerIntClear(WTIMER1_BASE, TIMER_CAPA_EVENT);
-
-//	ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, 4);	// Turn on blue LED
-
-//	ui32Timer = ROM_TimerValueGet(WTIMER1_BASE, TIMER_A);
-//	diff = ui32Timer - ui32Timer_prev;
-//	ui32Timer_prev = ui32Timer;
 }
 
 
@@ -106,18 +95,12 @@ void WTimer1BIntHandler(void)
 {
 	// Clear the timer interrupt
 	ROM_TimerIntClear(WTIMER1_BASE, TIMER_CAPB_EVENT);
-
-//	ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, 8);	// Turn on green LED
-
 }
 
 void WTimer5AIntHandler(void)
 {
 	// Clear the timer interrupt
 	ROM_TimerIntClear(WTIMER5_BASE, TIMER_CAPA_EVENT);
-
-//	ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1, 2);	// Turn on red LED
-
 }
 
 
@@ -125,8 +108,6 @@ void WTimer5BIntHandler(void)
 {
 	// Clear the timer interrupt
 	ROM_TimerIntClear(WTIMER5_BASE, TIMER_CAPB_EVENT);
-
-//	ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, 14);	// Turn on all LEDs
 
 }
 
@@ -140,6 +121,8 @@ void Timer3AIntHandler(void)
 	 * So this timer is used to generate interrupts at rate of 1 Hz in order to
 	 * get the value of the counted positive input edges on the pin PC6
 	 * configured as Input Edge-Count timer over the WT1CCP0.
+	 *
+	 * Timer3A current set to 100 ms period interrupt.
 	 *
 	 *************************************************************************/
     static uint32_t tav_1 = 0U; /* Previous edge count */
@@ -161,14 +144,49 @@ void Timer3AIntHandler(void)
 	delta = wt1cpp0_tav_buffer - tav_1;
 	tav_1 = wt1cpp0_tav_buffer;
 
-	g_timer_a3_scan_flag = 1U;
+	g_timer_a3_scan_flag ^= 0xFF;
 
 
-	GPIO_PORTF_DATA_R ^= GPIO_PIN_2;
+
+    disk_timerproc (); /* FatFs timer */
+    increment ();      /* Used in PWM */
+
+//	GPIO_PORTF_DATA_R ^= GPIO_PIN_2;
 }
 
 void ADC0SS1IntHandler(void)
 {
+
+	uint8_t k = 0U;
+
+	//for (delay = 0U; delay < 50; delay++); /* Delay */
+    /**************************************************************************
+     * Retrieve data from sample sequence 1 FIFO. The data, if HW averaged is
+     * enabled, are available in the FIFO.
+     *
+     *  ADC Sample Sequence Result FIFO 1 (ADCSSFIFO1, page 857)
+     *************************************************************************/
+	for (k = 0U; k < 3U; k++)
+    {
+        adc0_buffer[k] = ADC0_SSFIFO1_R;    /* k = 0: PD1_AIN6_Ax      */
+											/* k = 1: PD0_AIN7_StrGage */
+											/* k = 2: PE1_AIN2_V_motor */
+
+        adc1_buffer[k] = ADC1_SSFIFO1_R;    /* k = 0: PD2_AIN5_Ay      */
+											/* k = 1: PD3_AIN4_Az      */
+											/* k = 2: PE2_AIN1_I_motor */
+    }
+	/* Codigo anterior */
+//	adc0_buffer[2] = ADC0_SSFIFO1_R;	/* PE1_AIN2_V_motor */
+//	adc0_buffer[0] = ADC0_SSFIFO1_R;    /* PD1_AIN6_Ax      */
+//	adc0_buffer[1] = ADC0_SSFIFO1_R;    /* PD0_AIN7_StrGage */
+//	discard_0        = ADC0_SSFIFO1_R;    /* Disrcard */
+
+//	adc1_buffer[2] = ADC1_SSFIFO1_R;    /* PE2_AIN1_I_motor */
+//	adc1_buffer[0] = ADC1_SSFIFO1_R;    /* PD2_AIN5_Ay      */
+//	adc1_buffer[1] = ADC1_SSFIFO1_R;    /* PD3_AIN4_Az      */
+//	discard_1        = ADC1_SSFIFO1_R;    /* Disrcard */
+
 	/**************************************************************************
 	 *  ADC0 - Acknowledge Sample Sequencer 1 Interrupt
 	 *
@@ -176,21 +194,9 @@ void ADC0SS1IntHandler(void)
 	 *************************************************************************/
 	ADC0_ISC_R = ADC_ISC_IN1;
 
-    /**************************************************************************
-     * Retrieve data from sample sequence 1 FIFO. The data, if HW averaged is
-     * enabled, are available in the FIFO.
-     *
-     *  ADC Sample Sequence Result FIFO 1 (ADCSSFIFO1, page 857)
-     *************************************************************************/
-	adc0_buffer[2] = ADC0_SSFIFO1_R;	/* PE1_AIN2_V_motor */
-	adc0_buffer[0] = ADC0_SSFIFO1_R;    /* PD1_AIN6_Ax      */
-	adc0_buffer[1] = ADC0_SSFIFO1_R;    /* PD0_AIN7_StrGage */
-
-	adc1_buffer[2] = ADC1_SSFIFO1_R;    /* PE2_AIN1_I_motor */
-	adc1_buffer[0] = ADC1_SSFIFO1_R;    /* PD2_AIN5_Ay      */
-	adc1_buffer[1] = ADC1_SSFIFO1_R;    /* PD3_AIN4_Az      */
-
 	g_timer_a0_scan_flag = 1U;
+
+//	GPIO_PORTF_DATA_R ^= GPIO_PIN_2;    /* Blue LED on PF2 */
 }
 
 void ADC1SS1IntHandler(void)

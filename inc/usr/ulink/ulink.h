@@ -49,6 +49,6 @@ void uart_write ( );
 int uart_read();
 
 uint8_t packet_data (ulink_pso_data_t* dp);
-void uart_write2 (uint16_t* uart_tx_buf, ulink_pso_data_t* dp);
+void copy_data (uint16_t* uart_tx_buf, ulink_pso_data_t* dp);
 
 #endif  // ULINK_H

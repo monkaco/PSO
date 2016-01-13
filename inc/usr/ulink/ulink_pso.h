@@ -19,6 +19,8 @@
 
 typedef struct __ulink_pso_data_t
 {
+ uint8_t throttle; /*< Throttle  (0 ~ 100)*/
+ uint16_t index; /*< Frame index */
  int16_t rpm; /*< Propeller rotation (rpm)*/
  int16_t v_motor; /*< Motor voltage (V)*/
  int16_t i_motor; /*< Motor current (A)*/
