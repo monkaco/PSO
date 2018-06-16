@@ -2,7 +2,7 @@
 * FILENAME:    led.c
 *
 * DESCRIPTION:
-*       Functions to turn on/off the three LEDs.
+*       Functions to turn on/off the three LEDs (Red, Green, Blue).
 *
 * FUNCTIONS:
 *    void LEDRedOn    (void);
